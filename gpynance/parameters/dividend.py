@@ -1,11 +1,12 @@
-from gpynance.utils.data import Data
-from gpynance.utils.observer import Observer, Observable
-import gpynance.gvar
+from gpynance import gvar
 from gpynance.utils.myexception import MyException
 from scipy.interpolate import interp1d
+from gpynance.parameters.parameter import Parameter
 import numpy as np
+from gpynance.utils import utils
+import QuantLib as ql
 
-class Dividend(Observer):
+class Dividend(Parameter):
     """
     Dividend(times, ratios, ref_date = gvar.ref_date, dtype = gvar.dtype, name ="")
     
@@ -16,28 +17,26 @@ class Dividend(Observer):
     
     cupy interpolation is not defined, so xp = np by default
     """
-    def __init__(self, times, ratios, ref_date = gvar.eval_date, dtype = gvar.dtype, name =""):
-        super().__init__(ratios)
-        self.dtype = dtype
-        self.ref_date = ref_date
-        
-        if all(isinstance(t, ql.Date) for t in times):
-            self.times = np.array([ql.ActualActual().yearFraction(ref_date.d, t) for t in times], dtype=self.dtype)
-        elif all(type(t) in (float, np.float16, np.float32, np.float64) for t in times):
-            self.times = np.array(times, dtype=self.dtype)
-        else:
-            raise MyException("The element type of time is obscure", self, name)
+    def __init__(self, times, ratios, xp = np, ref_date = gvar.eval_date, dtype = gvar.dtype, name =""):
+        super().__init__(ratios, xp, ref_date, dtype, name)
+        if len(times) != len(ratios.data):
+            raise MyException("The times and ratios have different length", self, self.name)
+        self.set_times(times)
+        self.ratios = self.xp.array(ratios.data, dtype = self.dtype)
 
-        self.ratios = np.array(ratios.data, dtype = self.dtype)
-        self.accum_deduction = np.multiply.accumulate( 1.0 - self.ratios )
-        
+        if not self.xp.isclose(self.times[0], 0.0):
+            self.times = self.xp.insert(self.times, 0, 0.0, axis=0)
+            self.ratios = self.xp.insert(self.ratios, 0, 0.0, axis=0)
+            
+        self.accum_deduction = self.xp.multiply.accumulate( 1.0 - self.ratios )
         self.interp=interp1d(self.times, self.accum_deduction, kind='previous', fill_value="extrapolate")
-
+        self.dc = ql.ActualActual()        
+        
     def __call__(self, x):
+        x = utils.whattimeis(x, ref_date = self.ref_date, dc = self.dc, dtype = self.dtype)
         return self.interp(x)
-        
+    
     def update(self, data, *args):
-        self.ratios = np.array(data.data, dtype=self.dtype)
-        self.accum_deduction = np.multiply.accumulate( 1.0 - self.ratios )
+        self.ratios = self.xp.array(data.data, dtype=self.dtype)
+        self.accum_deduction = self.xp.multiply.accumulate( 1.0 - self.ratios )
         self.interp=interp1d(self.times, self.accum_deduction, kind='previous', fill_value="extrapolate")
-        
