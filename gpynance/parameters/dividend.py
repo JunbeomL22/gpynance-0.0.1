@@ -17,10 +17,12 @@ class Dividend(Parameter):
     
     cupy interpolation is not defined, so xp = np by default
     """
-    def __init__(self, times, ratios, xp = np, ref_date = gvar.eval_date, dtype = gvar.dtype, name =""):
+    def __init__(self, times, ratios, ref_date, xp = np, dtype = gvar.dtype, name =""):
         super().__init__(ratios, xp, ref_date, dtype, name)
         if len(times) != len(ratios.data):
             raise MyException("The times and ratios have different length", self, self.name)
+        
+        self.whattimeis = utils.WhatTimeIs(ref_date)
         self.set_times(times)
         self.ratios = self.xp.array(ratios.data, dtype = self.dtype)
 

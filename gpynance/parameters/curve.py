@@ -19,6 +19,7 @@ class ZeroCurve(Parameter):
         This interpolates on discounts not the rates.
         """
         super().__init__(rates, xp, ref_date, dtype, name)
+        self.whattimeis = utils.WhatTimeIs(ref_date)
         if type(rates) != Data:
             raise MyException("rates must be Data object", self, name)
         if len(times) != len(rates.data):
@@ -43,19 +44,19 @@ class ZeroCurve(Parameter):
 
     @dispatch(object)
     def discount(self, t):
-        t = utils.whattimeis(t, ref_date = self.ref_dates, dc = self.dc, dtype = self.dtype)
+        t = self.whattimeis(t)
         return self.interp(t)
 
     @dispatch(object, object)
     def discount(self, t1, t2):
-        t1 = utils.whattimeis(t1, ref_date = self.ref_dates, dc = self.dc, dtype = self.dtype)
-        t2 = utils.whattimeis(t2, ref_date = self.ref_dates, dc = self.dc, dtype = self.dtype)
+        t1 = self.whattimeis(t1)
+        t2 = self.whattimeis(t2)
         return self.interp(t1) / self.interp(t1)
     
     @dispatch(object, object, str)
     def forward(self, t1, t2, compounding = "simple"):
-        t1 = utils.whattimeis(t1, ref_date = self.ref_dates, dc = self.dc, dtype = self.dtype)
-        t2 = utils.whattimeis(t2, ref_date = self.ref_dates, dc = self.dc, dtype = self.dtype)
+        t1 = self.whattimeis(t1)
+        t2 = self.whattimeis(t2)
         tau = t2-t1
         disc = self.discount(t1, t2)
         if compounding == "simple":
@@ -67,6 +68,6 @@ class ZeroCurve(Parameter):
 
     @dispatch(object, str)
     def forward(self, t, compounding = "simple"):
-        t = utils.whattimeis(t, ref_date = self.ref_dates, dc = self.dc, dtype = self.dtype)
+        t = self.whattimeis(t)
         return self.forward(t, t + 0.0001, compounding)
         

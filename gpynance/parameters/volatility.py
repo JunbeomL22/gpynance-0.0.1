@@ -3,19 +3,35 @@ from gpynance import gvar
 from gpynance.utils.myexception import MyException
 
 class ConstantVolatility:
-    def __init__(self, sigma, ref_date=gvar.eval_date, name="ConstantVolatility"):
-        self.ref_date = ref_date
+    def __init__(self, sigma, name=""):
         self.name = name
-        self.sigma=sigma
-
-    def local_vol(self, t, x):
+        self.sigma = sigma
+        
+    def _call__(self, t, x):
         return self.sigma
 
+class Quanto:
+    '''
+    Quanto(sigma, rho, name="")
+    '''
+    def __init__(self, sigma=0.0, rho=0.0, name=""):
+        self.name = name
+        self.sigma = sigma
+        self.rho = rho
+
+    def quanto_adjust(self, v):
+        """
+        quanto_adjust(self, v)
+        
+        This returns v * self.sigma * self.rho
+        The amount of adjustment is quanto_adjust(self, vol) * dt
+        """
+        return v * self.sigma * self.rho
+        
+
+"""
 class ImpliedVolatility:
-    """
-    ImpliedVolatility(times, strikes, data, ref_date=gvar.eval_date,
-                 xp=gvar.xp, dtype = gvar.dtype, name="undefined")
-    """
+    
     def __init__(self, times, strikes, data, ref_date=gvar.eval_date,
                  xp=gvar.xp, dtype = gvar.dtype, name="undefined"):
         self.xp = xp
@@ -40,10 +56,9 @@ class StrikeImpliedVolatility:
         self.forward = forward
 
 class Quanto:
-    """
-    Quanto(corr = -0.01, sigma = 0.01, name = "<KRW, SnP>)
-    """
+    
     def __init__(self, sigma, rho, name="undefined"):
         self.sigma = sigma
         self.rho = rho
         
+"""

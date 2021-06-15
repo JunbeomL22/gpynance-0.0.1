@@ -7,5 +7,7 @@ setup(name='gpynance',
       author='Junbeom Lee',
       author_email='junbeoml22@gmail.com',
       license='MIT',
+      #test_suite='nose.collector',
+      #tests_require=['nose'],
       packages=find_packages(), 
       zip_safe=False)
