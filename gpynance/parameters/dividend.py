@@ -22,7 +22,7 @@ class Dividend(Parameter):
         if len(times) != len(ratios.data):
             raise MyException("The times and ratios have different length", self, self.name)
         
-        self.whattimeis = utils.WhatTimeIs(ref_date)
+        self.whattimeis = utils.WhatTimeIs(ref_date, xp = self.xp, dtype = self.dtype)
         self.set_times(times)
         self.ratios = self.xp.array(ratios.data, dtype = self.dtype)
 
@@ -35,7 +35,7 @@ class Dividend(Parameter):
         self.dc = ql.ActualActual()        
         
     def __call__(self, x):
-        x = utils.whattimeis(x, ref_date = self.ref_date, dc = self.dc, dtype = self.dtype)
+        x = self.whattimeis(x)
         return self.interp(x)
     
     def update(self, data, *args):

@@ -29,4 +29,30 @@ class TestWhatTimeIs(unittest.TestCase):
         res = whattimeis(darray)
         self.assertTrue(cp.allclose(res, cp.array(times, dtype=gvar.dtype)))
 
+    def test_float(self):
+        refdate = referencedate.ReferenceDate(ql.Date(1, 1, 2021))
+        dc = ql.ActualActual()
+        t = 1.0
+        whattimeis = utils.WhatTimeIs(refdate, dc = dc)
+        self.assertEqual(whattimeis(t), t)
+
+        # list to numpy
+        t = [1.0, 2.0]
+        whattimeis = utils.WhatTimeIs(refdate, dc = dc, xp=np)
+        self.assertTrue(np.allclose(whattimeis(t), np.array(t)))
+
+    def test_dc(self):
+        refdate = referencedate.ReferenceDate(ql.Date(1, 1, 2021))
+        dc = ql.Actual365Fixed()
+        d = ql.Date(2, 2, 2022)
+        time = dc.yearFraction(refdate.date, d)
+        whattimeis = utils.WhatTimeIs(refdate, dc = dc, xp=np)
+        self.assertEqual(whattimeis(d), time)
+
+        dc = ql.Actual360()
+        d = ql.Date(2, 2, 2022)
+        time = dc.yearFraction(refdate.date, d)
+        whattimeis = utils.WhatTimeIs(refdate, dc = dc, xp=np)
+        self.assertEqual(whattimeis(d), time)
         
+
