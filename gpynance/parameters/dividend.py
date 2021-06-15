@@ -8,7 +8,7 @@ import QuantLib as ql
 
 class Dividend(Parameter):
     """
-    Dividend(times, ratios, ref_date = gvar.ref_date, dtype = gvar.dtype, name ="")
+    Dividend(times, ratios, ref_date, dtype = gvar.dtype, name ="")
     
     ratios is the observable of DividendRatio. 
     If data (= ratios) notifies, the interpolation attribute in Dividend is updated.
@@ -42,3 +42,5 @@ class Dividend(Parameter):
         self.ratios = self.xp.array(data.data, dtype=self.dtype)
         self.accum_deduction = self.xp.multiply.accumulate( 1.0 - self.ratios )
         self.interp=interp1d(self.times, self.accum_deduction, kind='previous', fill_value="extrapolate")
+
+        

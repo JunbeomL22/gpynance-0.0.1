@@ -4,6 +4,7 @@ from gpynance.utils import referencedate
 from gpynance.utils import data
 #-
 import numpy as np
+
 class TestDividend(unittest.TestCase):
     def test_dividend(self):
         ref_date = referencedate.ReferenceDate()
