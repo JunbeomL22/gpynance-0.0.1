@@ -1,11 +1,10 @@
-import QuantLib as ql
-import numpy as np
-import cupy as cp
 from gpynance.utils import myexception
 from gpynance import gvar
 from gpynance.utils import referencedate
-
-rd = referencedate.ReferenceDate()
+#-
+import QuantLib as ql
+import numpy as np
+import cupy as cp
 
 class WhatTimeIs:
     def __init__(self, ref_date, dtype=gvar.dtype, dc=ql.ActualActual(), xp=np):
@@ -31,7 +30,9 @@ class WhatTimeIs:
             else:
                 return self.dc.yearFraction(self.ref_date.date, t)
         elif type(t) in arraytype:
-            if type(t[0]) in floattype:
+            if type(t) in (np.ndarray, cp.ndarray) and t.shape == ():
+                return t
+            elif type(t[0]) in floattype:
                 return t
             elif type(t) == cp.core.core.ndarray and type(t[0]) == cp.core.core.ndarray:
                 return t

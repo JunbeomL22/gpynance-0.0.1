@@ -77,21 +77,22 @@ class ZeroCurve(Parameter):
         t2 = self.whattimeis(t2)
         return self.interp(t2) / self.interp(t1)
     
-    @dispatch(object, object, str)
+    @dispatch(object, object, compounding=str)
     def forward(self, t1, t2, compounding = "simple"):
         t1 = self.whattimeis(t1)
         t2 = self.whattimeis(t2)
+        
         tau = self.xp.maximum(t2-t1, 0.0001)
-        disc = self.discount(t1, t2)
+        disc = self.discount(t2, t1)
         if compounding == "simple":
             return (disc -1.0) / tau
-        elif compunding == "continuous":
-            return - self.xp.log(disc) / tau
+        elif compounding == "continuous":
+            return self.xp.log(disc) / tau
         else:
             raise MyException("The forward rate for the given compounding type has not been defined", self, self.name)
 
-    @dispatch(object, str)
+    @dispatch(object, compounding=str)
     def forward(self, t, compounding = "simple"):
         t = self.whattimeis(t)
-        return self.forward(t, t + 0.0001, compounding)
+        return self.forward(t, t + 0.0001, compounding=compounding)
         
