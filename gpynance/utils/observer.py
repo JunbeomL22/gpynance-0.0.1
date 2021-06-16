@@ -38,7 +38,8 @@ class IObserver(metaclass=ABCMeta):
         ""
 class Observer(IObserver):
     "The concrete observer"
-    def __init__(self, observable):
-        observable.subscribe(self)
+    def __init__(self, observables):
+        for observable in observables:
+            observable.subscribe(self)
         
     #def update(self, observable, *args):
