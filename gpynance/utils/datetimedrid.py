@@ -1,6 +1,7 @@
 from gpynance import gvar
+from gpynance.utils import myexception
+#-
 import QuantLib as ql
-from gpynance.utils import myexception 
 
 class DateTimeGrid:
     def __init__(self, start_date,
@@ -33,19 +34,26 @@ class DateTimeGrid:
         self.ref_date = start_date
         self.calendar = calendar
         self.mand_dates = mand_dates
-        if only_mand:
-            self.dates = []
-            tm = []
-        else:
-            self.dates = [self.ref_date]
-            tm = [0.0]
+        self.only_mand  = only_mand
+        self.mand_dates = mand_dates
+        self.calendar = calendar
+        self.xp = xp
 
         self.maturity = calendar.adjust(end_date)
 
         if start_date > self.maturity:
             raise myexception.MyException("start_date > maturity, location: DateTimeGrid", self)
 
-        days = (self.maturity-start_date)
+        self.calculate()
+        
+    def calculate(self):
+        if self.only_mand:
+            self.dates = []
+            tm = []
+        else:
+            self.dates = [self.ref_date]
+            tm = [0.0]
+        days = (self.maturity-self.ref_date)
 
         d = self.ref_date
         
@@ -53,14 +61,14 @@ class DateTimeGrid:
         dc = ql.ActualActual()
         for i in range(days):
             d = self.ref_date + ql.Period(i+1, ql.Days)
-            if (((not only_mand) and calendar.isBusinessDay(d)) or (d in mand_dates)):
+            if (((not self.only_mand) and self.calendar.isBusinessDay(d)) or (d in self.mand_dates)):
                 self.dates.append(d)
                 tm.append(dc.yearFraction(self.ref_date, d))
-                if (d in mand_dates):
+                if (d in self.mand_dates):
                     mand_tm.append(dc.yearFraction(self.ref_date, d))
                           
-        self.times = xp.array(tm, dtype=self.dtype)
-        self.mand_times = xp.array(mand_tm, dtype=self.dtype)
-        self.dt = xp.zeros(self.times.shape[0], dtype=self.dtype)
+        self.times = self.xp.array(tm, dtype=self.dtype)
+        self.mand_times = self.xp.array(mand_tm, dtype=self.dtype)
+        self.dt = self.xp.zeros(self.times.shape[0], dtype=self.dtype)
         self.dt[1:] = self.times[1:] - self.times[:-1]
         self.sqdt = self.xp.sqrt(self.dt)
