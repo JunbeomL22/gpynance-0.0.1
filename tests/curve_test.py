@@ -10,7 +10,7 @@ import QuantLib as ql
 class TestCurve(unittest.TestCase):
     def test_curve_methods(self):
         """
-        to test methods
+        to test methods of ZeroCurve
         """
         ref_date = referencedate.ReferenceDate(ql.Date(1, 1, 2021))
         dates = [ref_date.date + ql.Period(f"{i}Y") for i in range(1, 4)]
@@ -32,7 +32,7 @@ class TestCurve(unittest.TestCase):
 
     def test_curve_observables(self):
         """
-        to test the purturbation effect of observables
+        to test the purturbation effect of ZeroCurve observables
         """
         ref_date = referencedate.ReferenceDate(ql.Date(1, 1, 2021))
         dates = [ref_date.date + ql.Period(f"{i}Y") for i in range(1, 4)]

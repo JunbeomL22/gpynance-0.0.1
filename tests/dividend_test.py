@@ -10,7 +10,7 @@ import QuantLib as ql
 class TestDividend(unittest.TestCase):
     def test_dividend_ref_date(self):
         """
-        to test if observing the reference date works well
+        the ref_date behavior for dividend
         """
         ref_date = referencedate.ReferenceDate(ql.Date(1, 1, 2021))
         dates = [ref_date.date + ql.Period(f"{i}D") for i in range(1, 4)]
@@ -32,7 +32,7 @@ class TestDividend(unittest.TestCase):
 
     def test_dividend_data(self):
         """
-        to test the purturbation effect of (observable) dividend data 
+        the behavior of data purturbation
         """
         ref_date = referencedate.ReferenceDate(ql.Date(1, 1, 2021))
         dates = [ref_date.date + ql.Period(f"{i}D") for i in range(1, 4)]

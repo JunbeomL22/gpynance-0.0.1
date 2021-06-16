@@ -20,6 +20,7 @@ gpynance/utils/observer.py
 gpynance/utils/referencedate.py
 gpynance/utils/utils.py
 tests/__init__.py
-tests/dividend.py
-tests/referencedate.py
-tests/whattimeis.py
+tests/curve_test.py
+tests/dividend_test.py
+tests/referencedate_test.py
+tests/whattimeis_test.py
