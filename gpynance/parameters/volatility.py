@@ -7,8 +7,11 @@ class ConstantVolatility:
         self.name = name
         self.sigma = sigma
         
-    def _call__(self, t, x):
+    def __call__(self, t, x):
         return self.sigma
+
+    def apply_volatility(self, m):
+        return m*self.sigma
 
 class Quanto:
     '''
@@ -27,6 +30,11 @@ class Quanto:
         The amount of adjustment is quanto_adjust(self, vol) * dt
         """
         return v * self.sigma * self.rho
+
+    def apply_quanto(self, m, v, dt):
+        x = self.quanto_adjust(v)
+        adj = x * dt
+        return - adj + m
         
 
 """

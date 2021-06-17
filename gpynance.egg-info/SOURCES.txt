@@ -8,8 +8,9 @@ gpynance.egg-info/dependency_links.txt
 gpynance.egg-info/not-zip-safe
 gpynance.egg-info/top_level.txt
 gpynance/processes/__init__.py
-gpynance/processes/blackscholes.py
 gpynance/processes/cudafunction.py
+gpynance/processes/gbm.py
+gpynance/processes/process.py
 gpynance/products/__init__.py
 gpynance/products/forward.py
 gpynance/utils/__init__.py
