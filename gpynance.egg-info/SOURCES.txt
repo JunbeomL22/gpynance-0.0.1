@@ -14,13 +14,13 @@ gpynance/products/__init__.py
 gpynance/products/forward.py
 gpynance/utils/__init__.py
 gpynance/utils/data.py
-gpynance/utils/datetimedrid.py
+gpynance/utils/datetimegrid.py
 gpynance/utils/myexception.py
 gpynance/utils/observer.py
 gpynance/utils/referencedate.py
 gpynance/utils/utils.py
 tests/__init__.py
 tests/curve_test.py
+tests/datetimegrid_test.py
 tests/dividend_test.py
-tests/referencedate_test.py
 tests/whattimeis_test.py

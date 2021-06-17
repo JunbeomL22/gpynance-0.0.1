@@ -15,3 +15,21 @@ class ReferenceDate(observer.Observable):
         self.date -= period
         self.notify()
         return self
+
+    def __add__(self, period):
+        return self.date + period
+    
+    def __sub__(self, period):
+        return self.date - period
+    
+    def __gt__(self, d):
+        return self.date > d
+    
+    def __ge__(self, d):
+        return self.date >= d
+    
+    def __lt__(self, d):
+        return self.date < d
+    
+    def __le__(self, d):
+        return self.date <= d

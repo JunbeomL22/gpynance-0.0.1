@@ -9,9 +9,6 @@ import QuantLib as ql
 
 class TestDividend(unittest.TestCase):
     def test_dividend_ref_date(self):
-        """
-        the ref_date behavior for dividend
-        """
         ref_date = referencedate.ReferenceDate(ql.Date(1, 1, 2021))
         dates = [ref_date.date + ql.Period(f"{i}D") for i in range(1, 4)]
         w = utils.WhatTimeIs(ref_date, dtype='float64')
@@ -31,9 +28,6 @@ class TestDividend(unittest.TestCase):
         self.assertTrue(np.allclose(div(x), np.array([1.0, 0.99, 0.9702, 0.941094])))
 
     def test_dividend_data(self):
-        """
-        the behavior of data purturbation
-        """
         ref_date = referencedate.ReferenceDate(ql.Date(1, 1, 2021))
         dates = [ref_date.date + ql.Period(f"{i}D") for i in range(1, 4)]
         w = utils.WhatTimeIs(ref_date, dtype='float64')

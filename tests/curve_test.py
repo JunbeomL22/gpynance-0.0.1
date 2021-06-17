@@ -9,9 +9,6 @@ import QuantLib as ql
 
 class TestCurve(unittest.TestCase):
     def test_curve_methods(self):
-        """
-        to test methods of ZeroCurve
-        """
         ref_date = referencedate.ReferenceDate(ql.Date(1, 1, 2021))
         dates = [ref_date.date + ql.Period(f"{i}Y") for i in range(1, 4)]
         w = utils.WhatTimeIs(ref_date, dtype='float64')
@@ -31,9 +28,6 @@ class TestCurve(unittest.TestCase):
         self.assertTrue( np.allclose(zc(x), np.array([0.01, 0.02, 0.03])) )
 
     def test_curve_observables(self):
-        """
-        to test the purturbation effect of ZeroCurve observables
-        """
         ref_date = referencedate.ReferenceDate(ql.Date(1, 1, 2021))
         dates = [ref_date.date + ql.Period(f"{i}Y") for i in range(1, 4)]
         w = utils.WhatTimeIs(ref_date, dtype='float64')
