@@ -6,6 +6,9 @@ import QuantLib as ql
 import numpy as np
 import cupy as cp
 
+import time
+#-
+
 class WhatTimeIs:
     def __init__(self, ref_date, dtype=gvar.dtype, dc=ql.ActualActual(), xp=np):
         self.ref_date = ref_date
@@ -47,3 +50,6 @@ class WhatTimeIs:
                 raise myexception.MyFunctionException("The element type in the iterable input can't infer the action", "whattimeis")
         else:
             raise myexception.MyFunctionException("The input can't infer the action", "whattimeis")
+
+
+
