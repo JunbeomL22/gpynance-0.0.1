@@ -4,28 +4,19 @@ from gpynance.products import condition
 import numpy as np
 
 class TestCondition(unittest.TestCase):
-    def test_lowerbarrier(self):
-        lbar = condition.LowerBarrier(0.8)
-        x = np.linspace(0.0, 2.0, 21)
-        res = lbar(x)
-        self.assertTrue(all(res[:8] == False))
-        self.assertTrue(all(res[9:] == True))
-
-    def test_upperbarrier(self):
-        ubar = condition.UpperBarrier(1.2)
-        x = np.linspace(0.0, 2.0, 21)
-        res = ubar(x)
-        self.assertTrue(all(res[:11] == True))
-        self.assertTrue(all(res[12:] == False))
+    def test_conditions_on_worst_performer(self):
+        m = np.empty((2, 3, 3))
+        m[0] = np.array([[0.5, 1.0, 2.0], [1.0, 2.0, 0.5], [0.5, 0.7, 2.0]])
+        m[1] = np.array([[1.5, 1.0, 2.0], [1.0, 2.0, 0.9], [3.5, -0.5, 1.0]])
         
-    def test_lower_path_barrier(self):
-        lp_bar = condition.LowerPathBarrier(0.6)
-        x = np.linspace(0.0, 2.0, 20).reshape(2, 10)
-        res = lp_bar(x)
-        self.assertEqual(res.tolist(), [False, True])
+        lbar = condition.WorstLowerBarrier(base_price=[1.0, 1.0, 1.0], barrier_ratio = 0.8)
+        self.assertEqual(lbar(m[:, :, 0]).tolist(), [False, True, False])
+        self.assertEqual(lbar(m[:, :, 1]).tolist(), [True, True, False])
 
-    def test_upper_path_barrier(self):
-        up_bar = condition.UpperPathBarrier(1.2)
-        x = np.linspace(0.0, 2.0, 20).reshape(2, 10)
-        res = up_bar(x)
-        self.assertEqual(res.tolist(), [True, False])
+        
+        lpbar= condition.PathWorstLowerBarrier(base_price=[1.0, 1.0, 1.0], barrier_ratio = 0.4)
+        self.assertEqual(lpbar(m).tolist(), [True, True, False])
+        lpbar= condition.PathWorstLowerBarrier(base_price=[1.0, 1.0, 1.0], barrier_ratio = 0.6)
+        self.assertEqual(lpbar(m).tolist(), [False, False, False])
+        lpbar= condition.PathWorstLowerBarrier(base_price=[1.0, 1.0, 1.0], barrier_ratio = -0.6)
+        self.assertEqual(lpbar(m).tolist(), [True, True, True])

@@ -1,4 +1,3 @@
-
 # gpynance
 from gpynance import gvar
 from gpynance.utils import myexception
@@ -55,9 +54,8 @@ class Dividend(parameter.Parameter):
     
     def update(self, obs, *args):
         """
-        The action after an observable nofities a change.
+        The action after an observable (in this case, ref_date or dividendn data) nofities a change.
         """
-        #import pdb;pdb.set_trace()
         if isinstance(obs, referencedate.ReferenceDate):
             self.times = self.whattimeis(self.dates)
             if self.xp.isclose(self.times[0], 0.0) and len(self.times) < len(self.ratios):

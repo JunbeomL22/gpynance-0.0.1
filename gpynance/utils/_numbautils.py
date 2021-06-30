@@ -15,6 +15,8 @@ def index(array, item):
         
     return -1
 
+@cc.export('sortedindexi4', '(i4[:], i4)')
+@cc.export('sortedindexi8', '(i8[:], i8)')
 @cc.export('sortedindexf4', '(f4[:], f4)')
 @cc.export('sortedindexf8', '(f8[:], f8)')
 def sortedindex(array, item):
@@ -35,5 +37,6 @@ def sortedindex(array, item):
     for idx in range(n-1):
         if item >= array[idx] and item < array[idx+1]:
             return idx, (1.0 - (item-array[idx]))
-        
-#cc.compile()
+
+if __name__ == "__main__":
+    cc.compile()

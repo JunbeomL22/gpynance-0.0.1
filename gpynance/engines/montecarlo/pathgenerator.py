@@ -4,7 +4,7 @@ from gpynance.utils import indexing
 import numpy as np
 import cupy as cp
 
-import time
+import threading
 
 class GpuPathGenerator:
     def __init__(self, dtg, processes, num_simulation = 1, seed = 1, dtype = gvar.dtype, batch_size = None):
@@ -24,21 +24,51 @@ class GpuPathGenerator:
         self.times = cp.array(dtg.times, dtype = self.dtype)
         self.dt = cp.array(dtg.dt, dtype = self.dtype)
         self.sqdt = cp.sqrt(self.dt)
-        #ed = time.time(); print("1-1: ", ed-st)
-        self.path_cpu = np.empty((0, self.processes.num_random, self.dtg.number), dtype = self.dtype)
+        
+        self.path_cpu = np.empty((self.num_simulation, self.processes.num_random, self.dtg.number), dtype = self.dtype)
 
-    def cache_cpu_path(self, seed=1):
-        self.path_cpu = np.empty((0, self.processes.num_random, self.dtg.number), dtype = self.dtype)
+    def cache_cpu_path(self, seed=None):
+        """
+        The majority of calculation cost occurs in (the number is rough estimation) 
+        (1) random state initialization: 12 %
+        (2) gpu -> cpu transfer: 70 %
+        (3) insertion to numpy array: 18 %
 
-        self.seed = seed
-        self.reset_randomstate(seed)
+        NOTE that the path calculation take time ZERO.
+        Therefore, computational power of gpu does not matter AT ALL.
+        The crucual part is (2), i.e., the performance of PCI lane dominates the majority of computation time.
+        
+        The time in (1) occurs becauese cupy compile at the beginning. 
+        To reduce (3), you may want to use thread. 
+        But the proformance improvement by threading would be marginal (I guess), or even slower.
+
+        For now, the gpu -> cpu transfer and insertion are implemented in threading.
+        Check later if the threading improves the performance.
+        """
+        for _, proc in enumerate(self.processes.processes):
+            proc.cache(self.dtg)
+
+        def _insertion(_x, _y, _slice):
+            _x[_slice.start:_slice.stop] = cp.asnumpy(_y)
+        
+        slice_stop = 0
+        thread = []
         for step in self.batch_steps:
-            #st = time.time()
-            add_path = cp.asnumpy(self.simulate_one_batch(step))
-            #ed = time.time(); print("2-1: ", ed-st); st = time.time()
-            self.path_cpu = np.concatenate((self.path_cpu, add_path), axis=0)
-            concatenation takes a lot of time reduce this
-            #ed = time.time(); print("2-2: ", ed-st); st = time.time()
+            # _path_gpu = self.simulate_one_batch(step)
+            thread.append(threading.Thread(target=_insertion,
+                                           args=(self.path_cpu, self.simulate_one_batch(step), slice(slice_stop, slice_stop+step))))
+            #self.path_cpu[slice_stop:slice_stop + step] = cp.asnumpy(_path_gpu)
+            slice_stop += step
+       
+        for t in thread:
+            t.start()
+            
+        for t in thread:
+            t.join()
+
+        print("(pathgenerator.cache_cpu_path) For now, the gpu -> cpu transfer and insertion are implemented in threading.")
+        print("Check later if the threading improves the performance.\n")
+            
 
     def simulate_one_batch(self, batch = 1):
         bm = self.generate_brownianmotion(batch)
@@ -46,7 +76,7 @@ class GpuPathGenerator:
         for i, proc in enumerate(self.processes.processes):
             start = ind[i].start
             end = ind[i].stop
-            bm[start:end] = proc.evolve(bm[start:end], self.dtg.times, self.dt)
+            bm[:, start:end, :] = proc.evolve(bm[:, start:end, :], self.dtg.times, self.dt)
 
         return bm
 

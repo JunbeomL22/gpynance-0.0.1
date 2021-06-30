@@ -1,17 +1,45 @@
 import QuantLib as ql
 from gpynance import gvar
-from gpynance.utils.myexception import MyException
+from gpynance.utils import myexception
+
+from numba import cuda
+
+@cuda.jit
+def numba_apply_constant_vol(bm, dt, vol, quanto_sigma, quanto_rho):
+    """
+    This assumes 
+    - bm is a brownian motion
+    - dt[0] = 0.0
+    """
+    n = cuda.grid(1)
+    if n < bm.shape[0]:
+        c = bm.shape[2]
+        for i in range(1, c):
+            bm[n][0][i] = bm[n][0][i-1] + vol*bm[n][0][i] - 0.5*vol*vol*dt[i]
+            bm[n][0][i] -= vol * quanto_sigma * quanto_rho * dt[i]
 
 class ConstantVolatility:
-    def __init__(self, sigma, name=""):
+    def __init__(self, sigma, name="", target = "cuda", thredsperblock=32):
+        self.threadsperblock = thredsperblock
         self.name = name
         self.sigma = sigma
+        self.target = target
         
     def __call__(self, t, x):
         return self.sigma
 
-    def apply_volatility(self, m):
-        return m*self.sigma
+    def apply_volatility(self, m, dt, quanto):
+        """
+        Quanto is taken together here.
+        This may be confusing, but this way is chosen for compiling numba jit function only once.
+        """
+        if self.target == "cuda":
+            tpb = self.threadsperblock
+            bpg = (m.shape[0] + (tpb-1)) // tpb
+            numba_apply_constant_vol[bpg, tpb](m, dt, self.sigma, quanto.sigma, quanto.rho)
+        else:
+            raise myexception.MyException(f"A method applying volatility on {self.target} has not been defined", self, self.name)
+        
 
 class Quanto:
     '''

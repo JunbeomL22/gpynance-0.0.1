@@ -15,15 +15,16 @@ class WhatTimeIs:
         self.dc = dc
         self.dtype = dtype
         self.xp=xp
-        
+
+        self.floattype = (float, np.float16, np.float32, np.float64, cp.float16, cp.float32, cp.float64)
+        self.arraytype = (np.ndarray, cp.ndarray, list, tuple)
     def __call__(self, t):
         """
         whattimeis(t, ref_date=None, dc=None)
         If type(t) == ql.Date, it returns the year fraction w.r.t ref_date. Otherwise, this return t
         """
-        floattype = (float, np.float16, np.float32, np.float64, cp.float16, cp.float32, cp.float64)
-        arraytype = (np.ndarray, cp.ndarray, list, tuple)
-        if type(t) in floattype:
+        
+        if type(t) in self.floattype:
             return t
         elif type(t) == ql.Date:
             if self.ref_date is None:
@@ -32,12 +33,12 @@ class WhatTimeIs:
                 return (t - self.ref_date.date) / 365.0
             else:
                 return self.dc.yearFraction(self.ref_date.date, t)
-        elif type(t) in arraytype:
+        elif type(t) in self.arraytype:
             if type(t) in (np.ndarray, cp.ndarray) and t.shape == ():
                 return t
-            elif type(t[0]) in floattype:
+            elif type(t[0]) in self.floattype:
                 return t
-            elif type(t) == cp.core.core.ndarray and type(t[0]) == cp.core.core.ndarray:
+            elif type(t) == cp._core.core.ndarray and type(t[0]) == cp._core.core.ndarray:
                 return t
             elif type(t[0]) == ql.Date:
                 t = np.array(t)

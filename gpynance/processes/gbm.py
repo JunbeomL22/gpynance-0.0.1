@@ -5,6 +5,8 @@ from gpynance.parameters import volatility
 import cupy as cp
 import numpy as np
 
+import time
+
 class GbmProcess(process.Process1D):
     def __init__(self, init, vol, quanto, risk_free, dividend_ratio=null_parameter.null_dividend,
                  repo=null_parameter.null_yts, xp = gvar.xp, dtype = gvar.dtype, name = "", target = "cuda"):
@@ -20,23 +22,30 @@ class GbmProcess(process.Process1D):
         self.cache_forward = False
             
     def evolve(self, m, t, dt):
-        m = self.apply_volatility(m)
-        m = self.apply_quanto(m, dt)
+        self.apply_volatility(m, dt, self.quanto) #quanto is taken together for minimizing numba compilation
+        m = self.xp.exp(m)
         m = self.apply_forward(m, t)
         return m
 
-    def apply_volatility(self, m):
-        return self.vol.apply_volatility(m)
+    def cache(self, dtg):
+        t = dtg.times
+        if self.target == "cuda":
+            self.cached_forward = cp.array(self.forward(t), dtype = self.dtype)
+        else:
+            self.cached_forward = np.array(self.forward(t), dtype = self.dtype)
+            
+    def apply_volatility(self, m, dt, quanto):
+        return self.vol.apply_volatility(m, dt, quanto)
 
     def apply_quanto(self, m, dt):
         return self.quanto.apply_quanto(m, self.vol.sigma, dt)
 
     def apply_forward(self, m, t):
-        if self.target == "cuda":
-            fd = cp.array(self.forward(t), dtype = self.dtype)
-        else:
-            fd = np.array(self.forward(t), dtype = self.dtype)
-        return m*fd
+        #if self.target == "cuda":
+        #    fd = cp.array(self.forward(t), dtype = self.dtype)
+        #else:
+        #    fd = np.array(self.forward(t), dtype = self.dtype)
+        return m*self.cached_forward
 
     def forward(self, t):
         """
@@ -49,13 +58,5 @@ class GbmProcess(process.Process1D):
         div_deduct = self.dividend_ratio(t)
         disc_rate = self.risk_free.discount(t)
         disc_repo = self.repo.discount(t)
-        res = div_deduct * disc_repo / disc_rate
+        res = self.init.data*div_deduct * disc_repo / disc_rate
         return res
-
-    def cache_forward(self, t):
-        if not self.cache_forward:
-            if self.target == "cuda":
-                self.cached_forward = cp.array(self.forward(t), dtype = self.dtype)
-            else:
-                self.cached_forward = np.array(self.forward(t), dtype = self.dtype)
-            self.cache_forward = True
