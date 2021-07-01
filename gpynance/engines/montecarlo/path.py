@@ -39,6 +39,9 @@ class SinglePath:
             res = self.path[mask][:, st_idx:ed_idx]
             num_path = np.sum(mask)
 
+        if st >= self.dtg.ref_date.date:
+            return res
+        
         x = [self.past[k] for k in sorted(self.past) if k >= st]
         past_vals = self.xp.array(x, dtype = self.path.dtype)
 

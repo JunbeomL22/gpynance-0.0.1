@@ -26,15 +26,21 @@ rf_curve = curve.ZeroCurve([1.0], data.Data([risk_free_rate]), ref_date)
 
 # - make els payoffs
 # - build dates
-coup_dates = [ref_date.date + ql.Period(f"{i}M") for i in range(1, 7)]
+coup_dates = [ref_date.date + ql.Period(f"{i}M") for i in range(1, 24)]
 red_date = ref_date.date + ql.Period("6M")
 lizard_period = [ref_date.date, red_date]
 # - build coupon payoff
-coup_conditions= [condition.WorstLowerBarrier(d, [1.0, 2.0], 0.6) for d in coup_dates] 
+coup_conditions= [condition.WorstLowerBarrier(d, [1.0, 1.0], 1.1) for d in coup_dates] 
 coup_amounts   = [monthly_coupon_amount for i in range(len(coup_conditions))]
 coup_payments  = [payment.FixedCoupon(c) for c in coup_amounts]
+
 coup_payoffs = []
 for i in range(len(coup_conditions)):
     po = payoff.MaskedPayoff(coup_conditions[i], coup_payments[i], coup_dates[i])
     coup_payoffs.append(po)
 
+t = [np.sum(c(multi_path)) for c in coup_conditions]
+  this is very slow multi_path(start_date = ql.Date(4, 1, 2021), end_date = ql.Date(4, 1, 2022), after_ref = True)
+  check what the point is: tile or concatenate
+  moreover, multi_path slicing may return a list with different length
+#path slicing is very slow

@@ -36,7 +36,7 @@ class WorstLowerBarrier:
             return res
         for i in range(1, n):
             res = np.logical_and(res, x[i] >= self.barrier[i])
-        return res
+        return res.flatten()
 
 class WorstMeanLowerBarrier(WorstLowerBarrier):
     def __init__(self, date, num, base_price, barrier_ratio, dtype = gvar.dtype):
@@ -76,4 +76,4 @@ class PathWorstLowerBarrier:
         for i in range(1, n):
             mask = np.logical_and(mask, np.all(x[i] >= self.barrier[i], axis=1))
             
-        return mask
+        return mask.flatten()
